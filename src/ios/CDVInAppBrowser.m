@@ -591,6 +591,8 @@
     self.toolbar.userInteractionEnabled = YES;
     if (_browserOptions.toolbarcolor != nil) { // Set toolbar color if user sets it in options
       self.toolbar.barTintColor = [self colorFromHexString:_browserOptions.toolbarcolor];
+    } else {
+      self.toolbar.barTintColor = [self colorFromHexString:@"#2794d0"];
     }
     if (!_browserOptions.toolbartranslucent) { // Set toolbar translucent to no if user sets it in options
       self.toolbar.translucent = NO;
@@ -627,26 +629,49 @@
     self.addressLabel.textAlignment = NSTextAlignmentLeft;
     self.addressLabel.textColor = [UIColor colorWithWhite:1.000 alpha:1.000];
     self.addressLabel.userInteractionEnabled = NO;
-
-    NSString* frontArrowString = NSLocalizedString(@"❯", nil); // create arrow from Unicode char
-    self.forwardButton = [[UIBarButtonItem alloc] initWithTitle:frontArrowString style:UIBarButtonItemStylePlain target:self action:@selector(goForward:)];
+    int BUTTON_SIZE = 26;
+    
+    //NSString* frontArrowString = NSLocalizedString(@"❯", nil); // create arrow from Unicode char
+    //self.forwardButton = [[UIBarButtonItem alloc] initWithTitle:frontArrowString style:UIBarButtonItemStylePlain target:self action:@selector(goForward:)];
     //self.forwardButton.titleLabel.font = [UIFont fontWithName:@"Arial-MT" size:8.0];
-    self.forwardButton.enabled = YES;
-    [self.forwardButton
-     setTitleTextAttributes:[NSDictionary dictionaryWithObjectsAndKeys:[UIFont boldSystemFontOfSize:15], UITextAttributeFont,nil] forState:UIControlStateNormal];
+    //self.forwardButton.enabled = YES;
+    //[self.forwardButton
+    // setTitleTextAttributes:[NSDictionary dictionaryWithObjectsAndKeys:[UIFont boldSystemFontOfSize:15], UITextAttributeFont,nil] forState:UIControlStateNormal];
 
-    self.forwardButton.imageInsets = UIEdgeInsetsZero;
-    if (_browserOptions.navigationbuttoncolor != nil) { // Set button color if user sets it in options
-      self.forwardButton.tintColor = [self colorFromHexString:_browserOptions.navigationbuttoncolor];
-    }
+    //self.forwardButton.imageInsets = UIEdgeInsetsZero;
+    //if (_browserOptions.navigationbuttoncolor != nil) { // Set button color if user sets it in options
+    //  self.forwardButton.tintColor = [self colorFromHexString:_browserOptions.navigationbuttoncolor];
+    //}
+    
+    UIImage* forwardImage = [self getProperImage:@"ic_action_next_item" : BUTTON_SIZE];
+    //self.closeButton = [[UIBarButtonItem alloc] initWithImage:image style:UIBarButtonItemStylePlain target:self action:@selector(close)];
+    
+    // initialize button
+    UIButton *forwardB = [UIButton buttonWithType:UIButtonTypeCustom];
+    forwardB.tintColor = [UIColor whiteColor];
+    forwardB.bounds = CGRectMake( 0, 0, BUTTON_SIZE, BUTTON_SIZE);
+    [forwardB setImage:forwardImage forState:UIControlStateNormal];
+    [forwardB addTarget:self action:@selector(goForward:) forControlEvents:UIControlEventTouchUpInside];
+    self.forwardButton = [[UIBarButtonItem alloc] initWithCustomView:forwardB];
+    
+    UIImage* backImage = [self getProperImage:@"ic_action_previous_item" : BUTTON_SIZE];
+    //self.closeButton = [[UIBarButtonItem alloc] initWithImage:image style:UIBarButtonItemStylePlain target:self action:@selector(close)];
+    
+    // initialize button
+    UIButton *backB = [UIButton buttonWithType:UIButtonTypeCustom];
+    backB.tintColor = [UIColor whiteColor];
+    backB.bounds = CGRectMake( 0, 0, BUTTON_SIZE, BUTTON_SIZE);
+    [backB setImage:backImage forState:UIControlStateNormal];
+    [backB addTarget:self action:@selector(goBack:) forControlEvents:UIControlEventTouchUpInside];
+    self.backButton = [[UIBarButtonItem alloc] initWithCustomView:backB];
 
-    NSString* backArrowString = NSLocalizedString(@"❮", nil); // create arrow from Unicode char
-    self.backButton = [[UIBarButtonItem alloc] initWithTitle:backArrowString style:UIBarButtonItemStylePlain target:self action:@selector(goBack:)];
-    self.backButton.enabled = YES;
-    self.backButton.imageInsets = UIEdgeInsetsZero;
-    if (_browserOptions.navigationbuttoncolor != nil) { // Set button color if user sets it in options
-      self.backButton.tintColor = [self colorFromHexString:_browserOptions.navigationbuttoncolor];
-    }
+    //NSString* backArrowString = NSLocalizedString(@"❮", nil); // create arrow from Unicode char
+   // self.backButton = [[UIBarButtonItem alloc] initWithTitle:backArrowString style:UIBarButtonItemStylePlain target:self action:@selector(goBack:)];
+  //  self.backButton.enabled = YES;
+  //  self.backButton.imageInsets = UIEdgeInsetsZero;
+  //  if (_browserOptions.navigationbuttoncolor != nil) { // Set button color if user sets it in options
+  //    self.backButton.tintColor = [self colorFromHexString:_browserOptions.navigationbuttoncolor];
+  //  }
 
     // Filter out Navigation Buttons if user requests so
     if (_browserOptions.hidenavigationbuttons) {
@@ -666,23 +691,50 @@
     [self.webView setFrame:frame];
 }
 
+- (UIImage*) getProperImage:(NSString*)imageName : (int) size {
+    UIImage *smallImage = [[UIImage imageNamed:imageName] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate];
+    // scale image to BUTTON_SIZE
+    CGSize sacleSize = CGSizeMake(size, size);
+    UIGraphicsBeginImageContextWithOptions(sacleSize, NO, 0.0);
+    [smallImage drawInRect:CGRectMake(0, 0, sacleSize.width, sacleSize.height)];
+    UIImage * interMediateImage = UIGraphicsGetImageFromCurrentImageContext();
+    UIGraphicsEndImageContext();
+    // get template image again
+    UIImage* image = [interMediateImage imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate];
+    
+    return image;
+}
+
 - (void)setCloseButtonTitle:(NSString*)title : (NSString*) colorString
 {
+
     // the advantage of using UIBarButtonSystemItemDone is the system will localize it for you automatically
     // but, if you want to set this yourself, knock yourself out (we can't set the title for a system Done button, so we have to create a new one)
     self.closeButton = nil;
     // Initialize with title if title is set, otherwise the title will be 'Done' localized
+    int BUTTON_SIZE = 26;
+    //NSString* closeButtonTitle = NSLocalizedString(@"✕", nil);
+    // initialize image
     
-    NSString* closeButtonTitle = NSLocalizedString(@"✕", nil);
+    UIImage* image = [self getProperImage:@"ic_action_remove" : BUTTON_SIZE];
+    //self.closeButton = [[UIBarButtonItem alloc] initWithImage:image style:UIBarButtonItemStylePlain target:self action:@selector(close)];
 
-    self.closeButton = [[UIBarButtonItem alloc] initWithTitle:closeButtonTitle style:UIBarButtonItemStylePlain target:self action:@selector(close)];
+    // initialize button
+    UIButton *closeB = [UIButton buttonWithType:UIButtonTypeCustom];
+    closeB.tintColor = [UIColor whiteColor];
+    closeB.bounds = CGRectMake( 0, 0, BUTTON_SIZE, BUTTON_SIZE);
+    [closeB setImage:image forState:UIControlStateNormal];
+    [closeB addTarget:self action:@selector(close) forControlEvents:UIControlEventTouchUpInside];
     
-    [self.closeButton
-     setTitleTextAttributes:[NSDictionary dictionaryWithObjectsAndKeys:[UIFont boldSystemFontOfSize:15], UITextAttributeFont,nil] forState:UIControlStateNormal];
+    // set closeButton
+    self.closeButton = [[UIBarButtonItem alloc] initWithCustomView:closeB];
+    //self.closeButton = [[UIBarButtonItem alloc] initWithTitle:closeButtonTitle style:UIBarButtonItemStylePlain target:self action:@selector(close)];
+    
+    //[self.closeButton
+    // setTitleTextAttributes:[NSDictionary dictionaryWithObjectsAndKeys:[UIFont boldSystemFontOfSize:15], UITextAttributeFont,nil] forState:UIControlStateNormal];
     
     self.closeButton.enabled = YES;
     // If color on closebutton is requested then initialize with that that color, otherwise use initialize with default
-    self.closeButton.tintColor = [UIColor colorWithRed:60.0 / 255.0 green:136.0 / 255.0 blue:230.0 / 255.0 alpha:1];
     
     NSMutableArray* items = [self.toolbar.items mutableCopy];
     unsigned long closeButtonIndex = [items count] - 1;
