@@ -784,7 +784,7 @@
 
             // webView take up whole height less toolBar height
             CGRect webViewBounds = self.view.bounds;
-            webViewBounds.size.height -= TOOLBAR_HEIGHT;
+            webViewBounds.size.height -= TOOLBAR_HEIGHT*2;
             [self setWebViewFrame:webViewBounds];
         } else {
             // no toolBar, expand webView to screen dimensions
@@ -801,7 +801,7 @@
     BOOL locationbarVisible = !self.addressLabel.hidden;
 
     // prevent double show/hide
-    if (show == !(self.toolbar.hidden)) {
+    if (show == !(self.toolbar.hidden) && false) {
         return;
     }
 
@@ -943,10 +943,25 @@
     return statusBarOffset;
 }
 
+- (int) safeAreaSize {
+    if (@available(iOS 11, *)) {
+        UIWindow *mainWindow = [[[UIApplication sharedApplication] delegate] window];
+        return mainWindow.safeAreaInsets.top;
+    }
+    return 0;
+}
+
 - (void) rePositionViews {
     if ([_browserOptions.toolbarposition isEqualToString:kInAppBrowserToolbarBarPositionTop]) {
-        [self.webView setFrame:CGRectMake(self.webView.frame.origin.x, TOOLBAR_HEIGHT, self.webView.frame.size.width, self.webView.frame.size.height)];
-        [self.toolbar setFrame:CGRectMake(self.toolbar.frame.origin.x, [self getStatusBarOffset], self.toolbar.frame.size.width, self.toolbar.frame.size.height)];
+        if (@available(iOS 11, *)) {
+            int safeArea = [self safeAreaSize];
+            [self.webView setFrame:CGRectMake(self.webView.frame.origin.x, TOOLBAR_HEIGHT+safeArea, self.webView.frame.size.width, self.webView.frame.size.height-(TOOLBAR_HEIGHT+safeArea))];
+            [self.toolbar setFrame:CGRectMake(self.toolbar.frame.origin.x, [self getStatusBarOffset], self.toolbar.frame.size.width, self.toolbar.frame.size.height)];
+        } else {
+            [self.webView setFrame:CGRectMake(self.webView.frame.origin.x, TOOLBAR_HEIGHT, self.webView.frame.size.width, self.webView.frame.size.height)];
+            [self.toolbar setFrame:CGRectMake(self.toolbar.frame.origin.x, [self getStatusBarOffset], self.toolbar.frame.size.width, self.toolbar.frame.size.height)];
+        }
+        
     }
 }
 
