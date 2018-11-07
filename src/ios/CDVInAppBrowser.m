@@ -592,7 +592,7 @@
     if (_browserOptions.toolbarcolor != nil) { // Set toolbar color if user sets it in options
       self.toolbar.barTintColor = [self colorFromHexString:_browserOptions.toolbarcolor];
     } else {
-      self.toolbar.barTintColor = [self colorFromHexString:@"#2794d0"];
+      self.toolbar.barTintColor = [self colorFromHexString:@"#55b3e7"];
     }
     if (!_browserOptions.toolbartranslucent) { // Set toolbar translucent to no if user sets it in options
       self.toolbar.translucent = NO;
@@ -683,7 +683,7 @@
     self.view.backgroundColor = [UIColor grayColor];
     [self.view addSubview:self.toolbar];
     [self.view addSubview:self.addressLabel];
-    [self.view addSubview:self.spinner];
+    //[self.view addSubview:self.spinner];
 }
 
 - (void) setWebViewFrame : (CGRect) frame {
@@ -943,18 +943,22 @@
     return statusBarOffset;
 }
 
-- (int) safeAreaSize {
+- (int) safeAreaSizeOrStatusBarOffset {
+    int safeAreaSize = 0;
     if (@available(iOS 11, *)) {
         UIWindow *mainWindow = [[[UIApplication sharedApplication] delegate] window];
-        return mainWindow.safeAreaInsets.top;
+        safeAreaSize = mainWindow.safeAreaInsets.top;
     }
-    return 0;
+    if (safeAreaSize == 0) {
+        return [self getStatusBarOffset];
+    }
+    return safeAreaSize;
 }
 
 - (void) rePositionViews {
     if ([_browserOptions.toolbarposition isEqualToString:kInAppBrowserToolbarBarPositionTop]) {
         if (@available(iOS 11, *)) {
-            int safeArea = [self safeAreaSize];
+            int safeArea = [self safeAreaSizeOrStatusBarOffset];
             [self.webView setFrame:CGRectMake(self.webView.frame.origin.x, TOOLBAR_HEIGHT+safeArea, self.webView.frame.size.width, self.webView.frame.size.height-(TOOLBAR_HEIGHT+safeArea))];
             [self.toolbar setFrame:CGRectMake(self.toolbar.frame.origin.x, [self getStatusBarOffset], self.toolbar.frame.size.width, self.toolbar.frame.size.height)];
         } else {
