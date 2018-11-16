@@ -1013,8 +1013,8 @@
     // update url, stop spinner, update back/forward
 
     self.addressLabel.text = [self.currentURL absoluteString];
-    self.backButton.enabled = theWebView.canGoBack;
-    self.forwardButton.enabled = theWebView.canGoForward;
+    self.backButton.enabled = YES; // was theWebView.canGoBack;
+    self.forwardButton.enabled = YES; // was theWebView.canGoForward;
 
     [self.spinner stopAnimating];
 
