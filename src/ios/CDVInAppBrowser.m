@@ -987,13 +987,13 @@
     // loading url, start spinner, update back/forward
 
     self.addressLabel.text = NSLocalizedString(@"Loading...", nil);
-    self.backButton.enabled = theWebView.canGoBack;
-    self.forwardButton.enabled = theWebView.canGoForward;
+    self.backButton.enabled = YES; // was theWebView.canGoBack;
+    self.forwardButton.enabled = YES; // theWebView.canGoForward;
 
     NSLog(_browserOptions.hidespinner ? @"Yes" : @"No");
-    if(!_browserOptions.hidespinner) {
-        [self.spinner startAnimating];
-    }
+    // if(!_browserOptions.hidespinner) {
+    //     [self.spinner startAnimating];
+    // }
 
     return [self.navigationDelegate webViewDidStartLoad:theWebView];
 }
