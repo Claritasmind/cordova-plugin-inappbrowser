@@ -238,13 +238,17 @@
     // Run later to avoid the "took a long time" log message.
     dispatch_async(dispatch_get_main_queue(), ^{
         if (weakSelf.inAppBrowserViewController != nil) {
-            CGRect frame = [[UIScreen mainScreen] bounds];
-            UIWindow *tmpWindow = [[UIWindow alloc] initWithFrame:frame];
+            
+            if (!tmpWindow) {
+                CGRect frame = [[UIScreen mainScreen] bounds];
+                tmpWindow = [[UIWindow alloc] initWithFrame:frame];
+            }
             UIViewController *tmpController = [[UIViewController alloc] init];
             [tmpWindow setRootViewController:tmpController];
             [tmpWindow setWindowLevel:UIWindowLevelNormal];
-
+            
             [tmpWindow makeKeyAndVisible];
+            [tmpWindow setWindowLevel:UIWindowLevelNormal];
             [tmpController presentViewController:nav animated:YES completion:nil];
         }
     });
@@ -269,7 +273,10 @@
     dispatch_async(dispatch_get_main_queue(), ^{
         if (self.inAppBrowserViewController != nil) {
             _previousStatusBarStyle = -1;
-            [self.inAppBrowserViewController.presentingViewController dismissViewControllerAnimated:YES completion:nil];
+            [self.inAppBrowserViewController.presentingViewController dismissViewControllerAnimated:YES completion:^{
+                [[[[UIApplication sharedApplication] delegate] window] makeKeyAndVisible];
+            }];
+            
         }
     });
 }
@@ -483,7 +490,9 @@
     // Don't recycle the ViewController since it may be consuming a lot of memory.
     // Also - this is required for the PDF/User-Agent bug work-around.
     self.inAppBrowserViewController = nil;
-
+    
+    if (tmpWindow != nil) { [tmpWindow removeFromSuperview]; tmpWindow = nil; }
+    
     if (IsAtLeastiOSVersion(@"7.0")) {
         if (_previousStatusBarStyle != -1) {
             [[UIApplication sharedApplication] setStatusBarStyle:_previousStatusBarStyle];
@@ -889,9 +898,13 @@
     // Run later to avoid the "took a long time" log message.
     dispatch_async(dispatch_get_main_queue(), ^{
         if ([weakSelf respondsToSelector:@selector(presentingViewController)]) {
-            [[weakSelf presentingViewController] dismissViewControllerAnimated:YES completion:nil];
+            [[weakSelf presentingViewController] dismissViewControllerAnimated:YES completion:^{
+                [[[[UIApplication sharedApplication] delegate] window] makeKeyAndVisible];
+            }];
         } else {
-            [[weakSelf parentViewController] dismissViewControllerAnimated:YES completion:nil];
+            [[weakSelf parentViewController] dismissViewControllerAnimated:YES completion:^{
+                [[[[UIApplication sharedApplication] delegate] window] makeKeyAndVisible];
+            }];
         }
     });
 }
