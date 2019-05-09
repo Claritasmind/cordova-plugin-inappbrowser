@@ -1055,8 +1055,8 @@
     // log fail message, stop spinner, update back/forward
     NSLog(@"webView:didFailLoadWithError - %ld: %@", (long)error.code, [error localizedDescription]);
 
-    self.backButton.enabled = theWebView.canGoBack;
-    self.forwardButton.enabled = theWebView.canGoForward;
+    self.backButton.enabled = YES; // was theWebView.canGoBack;
+    self.forwardButton.enabled = YES; // was theWebView.canGoForward;
     [self.spinner stopAnimating];
 
     self.addressLabel.text = NSLocalizedString(@"Load Error", nil);
