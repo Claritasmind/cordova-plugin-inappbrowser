@@ -746,21 +746,42 @@ static CDVUIInAppBrowser* instance = nil;
     self.addressLabel.textColor = [UIColor colorWithWhite:1.000 alpha:1.000];
     self.addressLabel.userInteractionEnabled = NO;
 
-    NSString* frontArrowString = NSLocalizedString(@"►", nil); // create arrow from Unicode char
-    self.forwardButton = [[UIBarButtonItem alloc] initWithTitle:frontArrowString style:UIBarButtonItemStylePlain target:self action:@selector(goForward:)];
-    self.forwardButton.enabled = YES;
-    self.forwardButton.imageInsets = UIEdgeInsetsZero;
-    if (_browserOptions.navigationbuttoncolor != nil) { // Set button color if user sets it in options
-      self.forwardButton.tintColor = [self colorFromHexString:_browserOptions.navigationbuttoncolor];
-    }
+    int BUTTON_SIZE = 26;
+    UIImage* forwardImage = [self getProperImage:@"ic_action_next_item" : BUTTON_SIZE];
 
-    NSString* backArrowString = NSLocalizedString(@"◄", nil); // create arrow from Unicode char
-    self.backButton = [[UIBarButtonItem alloc] initWithTitle:backArrowString style:UIBarButtonItemStylePlain target:self action:@selector(goBack:)];
-    self.backButton.enabled = YES;
-    self.backButton.imageInsets = UIEdgeInsetsZero;
-    if (_browserOptions.navigationbuttoncolor != nil) { // Set button color if user sets it in options
-      self.backButton.tintColor = [self colorFromHexString:_browserOptions.navigationbuttoncolor];
-    }
+    // initialize button
+    UIButton *forwardB = [UIButton buttonWithType:UIButtonTypeCustom];
+    forwardB.tintColor = [UIColor whiteColor];
+    forwardB.bounds = CGRectMake( 0, 0, BUTTON_SIZE, BUTTON_SIZE);
+    [forwardB setImage:forwardImage forState:UIControlStateNormal];
+    [forwardB addTarget:self action:@selector(goForward:) forControlEvents:UIControlEventTouchUpInside];
+    self.forwardButton = [[UIBarButtonItem alloc] initWithCustomView:forwardB];
+
+    UIImage* backImage = [self getProperImage:@"ic_action_previous_item" : BUTTON_SIZE];
+
+    // initialize button
+    UIButton *backB = [UIButton buttonWithType:UIButtonTypeCustom];
+    backB.tintColor = [UIColor whiteColor];
+    backB.bounds = CGRectMake( 0, 0, BUTTON_SIZE, BUTTON_SIZE);
+    [backB setImage:backImage forState:UIControlStateNormal];
+    [backB addTarget:self action:@selector(goBack:) forControlEvents:UIControlEventTouchUpInside];
+    self.backButton = [[UIBarButtonItem alloc] initWithCustomView:backB];
+
+    // NSString* frontArrowString = NSLocalizedString(@"►", nil); // create arrow from Unicode char
+    // self.forwardButton = [[UIBarButtonItem alloc] initWithTitle:frontArrowString style:UIBarButtonItemStylePlain target:self action:@selector(goForward:)];
+    // self.forwardButton.enabled = YES;
+    // self.forwardButton.imageInsets = UIEdgeInsetsZero;
+    // if (_browserOptions.navigationbuttoncolor != nil) { // Set button color if user sets it in options
+    //   self.forwardButton.tintColor = [self colorFromHexString:_browserOptions.navigationbuttoncolor];
+    // }
+
+    // NSString* backArrowString = NSLocalizedString(@"◄", nil); // create arrow from Unicode char
+    // self.backButton = [[UIBarButtonItem alloc] initWithTitle:backArrowString style:UIBarButtonItemStylePlain target:self action:@selector(goBack:)];
+    // self.backButton.enabled = YES;
+    // self.backButton.imageInsets = UIEdgeInsetsZero;
+    // if (_browserOptions.navigationbuttoncolor != nil) { // Set button color if user sets it in options
+    //   self.backButton.tintColor = [self colorFromHexString:_browserOptions.navigationbuttoncolor];
+    // }
 
     // Filter out Navigation Buttons if user requests so
     if (_browserOptions.hidenavigationbuttons) {
@@ -786,16 +807,36 @@ static CDVUIInAppBrowser* instance = nil;
     [self.webView setFrame:frame];
 }
 
+- (UIImage*) getProperImage:(NSString*)imageName : (int) size {
+  UIImage *smallImage = [[UIImage imageNamed:imageName] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate];
+  // scale image to BUTTON_SIZE
+  CGSize sacleSize = CGSizeMake(size, size);
+  UIGraphicsBeginImageContextWithOptions(sacleSize, NO, 0.0);
+  [smallImage drawInRect:CGRectMake(0, 0, sacleSize.width, sacleSize.height)];
+  UIImage * interMediateImage = UIGraphicsGetImageFromCurrentImageContext();
+  UIGraphicsEndImageContext();
+  // get template image again
+  UIImage* image = [interMediateImage imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate];
+  return image;
+}
+
 - (void)setCloseButtonTitle:(NSString*)title : (NSString*) colorString : (int) buttonIndex
 {
     // the advantage of using UIBarButtonSystemItemDone is the system will localize it for you automatically
     // but, if you want to set this yourself, knock yourself out (we can't set the title for a system Done button, so we have to create a new one)
     self.closeButton = nil;
-    // Initialize with title if title is set, otherwise the title will be 'Done' localized
-    self.closeButton = title != nil ? [[UIBarButtonItem alloc] initWithTitle:title style:UIBarButtonItemStyleBordered target:self action:@selector(close)] : [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemDone target:self action:@selector(close)];
-    self.closeButton.enabled = YES;
-    // If color on closebutton is requested then initialize with that that color, otherwise use initialize with default
-    self.closeButton.tintColor = colorString != nil ? [self colorFromHexString:colorString] : [UIColor colorWithRed:60.0 / 255.0 green:136.0 / 255.0 blue:230.0 / 255.0 alpha:1];
+    int BUTTON_SIZE = 26;
+    // initialize image
+    UIImage* image = [self getProperImage:@"ic_action_remove" : BUTTON_SIZE];
+
+    // initialize button
+    UIButton *closeB = [UIButton buttonWithType:UIButtonTypeCustom];
+    closeB.tintColor = [UIColor whiteColor];
+    closeB.bounds = CGRectMake( 0, 0, BUTTON_SIZE, BUTTON_SIZE);
+    [closeB setImage:image forState:UIControlStateNormal];
+    [closeB addTarget:self action:@selector(close) forControlEvents:UIControlEventTouchUpInside];
+
+    self.closeButton = [[UIBarButtonItem alloc] initWithCustomView:closeB];
 
     NSMutableArray* items = [self.toolbar.items mutableCopy];
     [items replaceObjectAtIndex:buttonIndex withObject:self.closeButton];
@@ -932,7 +973,7 @@ static CDVUIInAppBrowser* instance = nil;
 }
 
 - (BOOL)prefersStatusBarHidden {
-    return NO;
+    return YES;
 }
 
 - (void)close
@@ -1007,10 +1048,28 @@ static CDVUIInAppBrowser* instance = nil;
     return statusBarOffset;
 }
 
+- (int) safeAreaSizeOrStatusBarOffset {
+  int safeAreaSize = 0;
+  if (@available(iOS 11, *)) {
+    UIWindow *mainWindow = [[[UIApplication sharedApplication] delegate] window];
+    safeAreaSize = mainWindow.safeAreaInsets.top;
+  }
+  if (safeAreaSize == 0) {
+    return [self getStatusBarOffset];
+  }
+  return safeAreaSize;
+}
+
 - (void) rePositionViews {
     if ([_browserOptions.toolbarposition isEqualToString:kInAppBrowserToolbarBarPositionTop]) {
+      if (@available(iOS 11, *)) {
+        int safeArea = [self safeAreaSizeOrStatusBarOffset];
+        [self.webView setFrame:CGRectMake(self.webView.frame.origin.x, TOOLBAR_HEIGHT+safeArea, self.webView.frame.size.width, (self.webView.frame.size.height - safeArea))];
+        [self.toolbar setFrame:CGRectMake(self.toolbar.frame.origin.x, [self getStatusBarOffset], self.toolbar.frame.size.width, self.toolbar.frame.size.height)];
+      } else {
         [self.webView setFrame:CGRectMake(self.webView.frame.origin.x, TOOLBAR_HEIGHT, self.webView.frame.size.width, self.webView.frame.size.height)];
         [self.toolbar setFrame:CGRectMake(self.toolbar.frame.origin.x, [self getStatusBarOffset], self.toolbar.frame.size.width, self.toolbar.frame.size.height)];
+      }
     }
 }
 

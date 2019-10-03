@@ -857,7 +857,7 @@ BOOL isExiting = FALSE;
     } else if ([self.addressLabel respondsToSelector:NSSelectorFromString(@"setMinimumFontSize:")]) {
         [self.addressLabel setValue:@(10.0) forKey:@"minimumFontSize"];
     }
-    
+
     self.addressLabel.multipleTouchEnabled = NO;
     self.addressLabel.numberOfLines = 1;
     self.addressLabel.opaque = NO;
@@ -866,22 +866,45 @@ BOOL isExiting = FALSE;
     self.addressLabel.textAlignment = NSTextAlignmentLeft;
     self.addressLabel.textColor = [UIColor colorWithWhite:1.000 alpha:1.000];
     self.addressLabel.userInteractionEnabled = NO;
-    
-    NSString* frontArrowString = NSLocalizedString(@"►", nil); // create arrow from Unicode char
-    self.forwardButton = [[UIBarButtonItem alloc] initWithTitle:frontArrowString style:UIBarButtonItemStylePlain target:self action:@selector(goForward:)];
-    self.forwardButton.enabled = YES;
-    self.forwardButton.imageInsets = UIEdgeInsetsZero;
-    if (_browserOptions.navigationbuttoncolor != nil) { // Set button color if user sets it in options
-      self.forwardButton.tintColor = [self colorFromHexString:_browserOptions.navigationbuttoncolor];
-    }
 
-    NSString* backArrowString = NSLocalizedString(@"◄", nil); // create arrow from Unicode char
-    self.backButton = [[UIBarButtonItem alloc] initWithTitle:backArrowString style:UIBarButtonItemStylePlain target:self action:@selector(goBack:)];
-    self.backButton.enabled = YES;
-    self.backButton.imageInsets = UIEdgeInsetsZero;
-    if (_browserOptions.navigationbuttoncolor != nil) { // Set button color if user sets it in options
-      self.backButton.tintColor = [self colorFromHexString:_browserOptions.navigationbuttoncolor];
-    }
+    int BUTTON_SIZE = 26;
+    // NSString* frontArrowString = NSLocalizedString(@"►", nil); // create arrow from Unicode char
+    // self.forwardButton = [[UIBarButtonItem alloc] initWithTitle:frontArrowString style:UIBarButtonItemStylePlain target:self action:@selector(goForward:)];
+    // self.forwardButton.enabled = YES;
+    // self.forwardButton.imageInsets = UIEdgeInsetsZero;
+    // if (_browserOptions.navigationbuttoncolor != nil) { // Set button color if user sets it in options
+    //   self.forwardButton.tintColor = [self colorFromHexString:_browserOptions.navigationbuttoncolor];
+    // }
+
+    UIImage* forwardImage = [self getProperImage:@"ic_action_next_item" : BUTTON_SIZE];
+    //self.closeButton = [[UIBarButtonItem alloc] initWithImage:image style:UIBarButtonItemStylePlain target:self action:@selector(close)];
+
+    // initialize button
+    UIButton *forwardB = [UIButton buttonWithType:UIButtonTypeCustom];
+    forwardB.tintColor = [UIColor whiteColor];
+    forwardB.bounds = CGRectMake( 0, 0, BUTTON_SIZE, BUTTON_SIZE);
+    [forwardB setImage:forwardImage forState:UIControlStateNormal];
+    [forwardB addTarget:self action:@selector(goForward:) forControlEvents:UIControlEventTouchUpInside];
+    self.forwardButton = [[UIBarButtonItem alloc] initWithCustomView:forwardB];
+
+    UIImage* backImage = [self getProperImage:@"ic_action_previous_item" : BUTTON_SIZE];
+    //self.closeButton = [[UIBarButtonItem alloc] initWithImage:image style:UIBarButtonItemStylePlain target:self action:@selector(close)];
+
+    // initialize button
+    UIButton *backB = [UIButton buttonWithType:UIButtonTypeCustom];
+    backB.tintColor = [UIColor whiteColor];
+    backB.bounds = CGRectMake( 0, 0, BUTTON_SIZE, BUTTON_SIZE);
+    [backB setImage:backImage forState:UIControlStateNormal];
+    [backB addTarget:self action:@selector(goBack:) forControlEvents:UIControlEventTouchUpInside];
+    self.backButton = [[UIBarButtonItem alloc] initWithCustomView:backB];
+
+    // NSString* backArrowString = NSLocalizedString(@"◄", nil); // create arrow from Unicode char
+    // self.backButton = [[UIBarButtonItem alloc] initWithTitle:backArrowString style:UIBarButtonItemStylePlain target:self action:@selector(goBack:)];
+    // self.backButton.enabled = YES;
+    // self.backButton.imageInsets = UIEdgeInsetsZero;
+    // if (_browserOptions.navigationbuttoncolor != nil) { // Set button color if user sets it in options
+    //   self.backButton.tintColor = [self colorFromHexString:_browserOptions.navigationbuttoncolor];
+    // }
 
     // Filter out Navigation Buttons if user requests so
     if (_browserOptions.hidenavigationbuttons) {
@@ -895,11 +918,15 @@ BOOL isExiting = FALSE;
     } else {
         [self.toolbar setItems:@[self.closeButton, flexibleSpaceButton, self.backButton, fixedSpaceButton, self.forwardButton]];
     }
-    
-    self.view.backgroundColor = [UIColor grayColor];
+    if (_browserOptions.toolbarcolor != nil) { // Set toolbar color if user sets it in options
+       UIColor* backgroundColor = [self colorFromHexString:_browserOptions.toolbarcolor];
+       self.view.backgroundColor = backgroundColor;
+    } else {
+      self.view.backgroundColor = [UIColor grayColor];
+    }
     [self.view addSubview:self.toolbar];
     [self.view addSubview:self.addressLabel];
-    [self.view addSubview:self.spinner];
+    //[self.view addSubview:self.spinner];
 }
 
 - (void) setWebViewFrame : (CGRect) frame {
@@ -907,17 +934,39 @@ BOOL isExiting = FALSE;
     [self.webView setFrame:frame];
 }
 
+- (UIImage*) getProperImage:(NSString*)imageName : (int) size {
+    UIImage *smallImage = [[UIImage imageNamed:imageName] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate];
+    // scale image to BUTTON_SIZE
+    CGSize sacleSize = CGSizeMake(size, size);
+    UIGraphicsBeginImageContextWithOptions(sacleSize, NO, 0.0);
+    [smallImage drawInRect:CGRectMake(0, 0, sacleSize.width, sacleSize.height)];
+    UIImage * interMediateImage = UIGraphicsGetImageFromCurrentImageContext();
+    UIGraphicsEndImageContext();
+    // get template image again
+    UIImage* image = [interMediateImage imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate];
+    return image;
+}
+
 - (void)setCloseButtonTitle:(NSString*)title : (NSString*) colorString : (int) buttonIndex
 {
     // the advantage of using UIBarButtonSystemItemDone is the system will localize it for you automatically
     // but, if you want to set this yourself, knock yourself out (we can't set the title for a system Done button, so we have to create a new one)
     self.closeButton = nil;
-    // Initialize with title if title is set, otherwise the title will be 'Done' localized
-    self.closeButton = title != nil ? [[UIBarButtonItem alloc] initWithTitle:title style:UIBarButtonItemStyleBordered target:self action:@selector(close)] : [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemDone target:self action:@selector(close)];
-    self.closeButton.enabled = YES;
-    // If color on closebutton is requested then initialize with that that color, otherwise use initialize with default
-    self.closeButton.tintColor = colorString != nil ? [self colorFromHexString:colorString] : [UIColor colorWithRed:60.0 / 255.0 green:136.0 / 255.0 blue:230.0 / 255.0 alpha:1];
-    
+
+    int BUTTON_SIZE = 26;
+
+    // initialize image
+    UIImage* image = [self getProperImage:@"ic_action_remove" : BUTTON_SIZE];
+
+    // initialize button
+    UIButton *closeB = [UIButton buttonWithType:UIButtonTypeCustom];
+    closeB.tintColor = [UIColor whiteColor];
+    closeB.bounds = CGRectMake( 0, 0, BUTTON_SIZE, BUTTON_SIZE);
+    [closeB setImage:image forState:UIControlStateNormal];
+    [closeB addTarget:self action:@selector(close) forControlEvents:UIControlEventTouchUpInside];
+
+    self.closeButton = [[UIBarButtonItem alloc] initWithCustomView:closeB];
+
     NSMutableArray* items = [self.toolbar.items mutableCopy];
     [items replaceObjectAtIndex:buttonIndex withObject:self.closeButton];
     [self.toolbar setItems:items];
@@ -959,13 +1008,13 @@ BOOL isExiting = FALSE;
         }
     } else {
         self.addressLabel.hidden = YES;
-        
+
         if (toolbarVisible) {
             // locationBar is on top of toolBar, hide locationBar
-            
+
             // webView take up whole height less toolBar height
             CGRect webViewBounds = self.view.bounds;
-            webViewBounds.size.height -= TOOLBAR_HEIGHT;
+            webViewBounds.size.height -= TOOLBAR_HEIGHT*2;
             [self setWebViewFrame:webViewBounds];
         } else {
             // no toolBar, expand webView to screen dimensions
@@ -978,18 +1027,18 @@ BOOL isExiting = FALSE;
 {
     CGRect toolbarFrame = self.toolbar.frame;
     CGRect locationbarFrame = self.addressLabel.frame;
-    
+
     BOOL locationbarVisible = !self.addressLabel.hidden;
-    
+
     // prevent double show/hide
-    if (show == !(self.toolbar.hidden)) {
+    if (show == !(self.toolbar.hidden) && false) {
         return;
     }
-    
+
     if (show) {
         self.toolbar.hidden = NO;
         CGRect webViewBounds = self.view.bounds;
-        
+
         if (locationbarVisible) {
             // locationBar at the bottom, move locationBar up
             // put toolBar at the bottom
@@ -1056,7 +1105,7 @@ BOOL isExiting = FALSE;
 }
 
 - (BOOL)prefersStatusBarHidden {
-    return NO;
+    return YES;
 }
 
 - (void)close
@@ -1129,10 +1178,41 @@ BOOL isExiting = FALSE;
     return statusBarOffset;
 }
 
+- (int) safeAreaSizeOrStatusBarOffset {
+  int safeAreaSize = 0;
+  if (@available(iOS 11, *)) {
+    UIWindow *mainWindow = [[[UIApplication sharedApplication] delegate] window];
+    safeAreaSize = mainWindow.safeAreaInsets.top;
+  }
+  //if (safeAreaSize == 0) {
+  //  return [self getStatusBarOffset];
+  //}
+  return safeAreaSize;
+}
+
+- (int) safeBottomAreaSize {
+  int safeAreaSize = 0;
+  if (@available(iOS 11, *)) {
+    UIWindow *mainWindow = [[[UIApplication sharedApplication] delegate] window];
+    safeAreaSize = mainWindow.safeAreaInsets.bottom;
+  } else {
+      return [self getStatusBarOffset];
+  }
+  return safeAreaSize;
+}
+
 - (void) rePositionViews {
     if ([_browserOptions.toolbarposition isEqualToString:kInAppBrowserToolbarBarPositionTop]) {
+      if (@available(iOS 11, *)) {
+        int safeArea = [self safeAreaSizeOrStatusBarOffset];
+          int bottomOffset = safeArea ? (TOOLBAR_HEIGHT + STATUSBAR_HEIGHT) : STATUSBAR_HEIGHT;
+        int bottomSafeArea = [self safeBottomAreaSize];
+          [self.webView setFrame:CGRectMake(self.webView.frame.origin.x, TOOLBAR_HEIGHT+safeArea, self.webView.frame.size.width, (self.webView.frame.size.height - bottomOffset))];
+        [self.toolbar setFrame:CGRectMake(self.toolbar.frame.origin.x, safeArea, self.toolbar.frame.size.width, self.toolbar.frame.size.height)];
+      } else {
         [self.webView setFrame:CGRectMake(self.webView.frame.origin.x, TOOLBAR_HEIGHT, self.webView.frame.size.width, self.webView.frame.size.height)];
         [self.toolbar setFrame:CGRectMake(self.toolbar.frame.origin.x, [self getStatusBarOffset], self.toolbar.frame.size.width, self.toolbar.frame.size.height)];
+      }
     }
 }
 
