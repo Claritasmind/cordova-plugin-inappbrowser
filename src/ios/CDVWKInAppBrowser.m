@@ -1183,10 +1183,9 @@ BOOL isExiting = FALSE;
   if (@available(iOS 11, *)) {
     UIWindow *mainWindow = [[[UIApplication sharedApplication] delegate] window];
     safeAreaSize = mainWindow.safeAreaInsets.top;
+  } else {
+    return [self getStatusBarOffset];
   }
-  //if (safeAreaSize == 0) {
-  //  return [self getStatusBarOffset];
-  //}
   return safeAreaSize;
 }
 
@@ -1205,9 +1204,9 @@ BOOL isExiting = FALSE;
     if ([_browserOptions.toolbarposition isEqualToString:kInAppBrowserToolbarBarPositionTop]) {
       if (@available(iOS 11, *)) {
         int safeArea = [self safeAreaSizeOrStatusBarOffset];
-          int bottomOffset = safeArea ? (TOOLBAR_HEIGHT + STATUSBAR_HEIGHT) : STATUSBAR_HEIGHT;
+        int bottomOffset = safeArea ? (TOOLBAR_HEIGHT + STATUSBAR_HEIGHT) : STATUSBAR_HEIGHT;
         int bottomSafeArea = [self safeBottomAreaSize];
-          [self.webView setFrame:CGRectMake(self.webView.frame.origin.x, TOOLBAR_HEIGHT+safeArea, self.webView.frame.size.width, (self.webView.frame.size.height - bottomOffset))];
+        [self.webView setFrame:CGRectMake(self.webView.frame.origin.x, TOOLBAR_HEIGHT+safeArea, self.webView.frame.size.width, (self.webView.frame.size.height - bottomOffset))];
         [self.toolbar setFrame:CGRectMake(self.toolbar.frame.origin.x, safeArea, self.toolbar.frame.size.width, self.toolbar.frame.size.height)];
       } else {
         [self.webView setFrame:CGRectMake(self.webView.frame.origin.x, TOOLBAR_HEIGHT, self.webView.frame.size.width, self.webView.frame.size.height)];
