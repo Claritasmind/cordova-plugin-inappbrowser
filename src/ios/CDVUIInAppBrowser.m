@@ -796,7 +796,11 @@ static CDVUIInAppBrowser* instance = nil;
         [self.toolbar setItems:@[self.closeButton, flexibleSpaceButton, self.backButton, fixedSpaceButton, self.forwardButton]];
     }
 
-    self.view.backgroundColor = [UIColor grayColor];
+    if (_browserOptions.toolbarcolor) {
+        self.view.backgroundColor = [self colorFromHexString:_browserOptions.toolbarcolor];
+    } else {
+        self.view.backgroundColor = [UIColor grayColor];
+    }
     [self.view addSubview:self.toolbar];
     [self.view addSubview:self.addressLabel];
     [self.view addSubview:self.spinner];
@@ -1053,9 +1057,20 @@ static CDVUIInAppBrowser* instance = nil;
   if (@available(iOS 11, *)) {
     UIWindow *mainWindow = [[[UIApplication sharedApplication] delegate] window];
     safeAreaSize = mainWindow.safeAreaInsets.top;
-  }
-  if (safeAreaSize == 0) {
+    return safeAreaSize;
+  } else {
     return [self getStatusBarOffset];
+  }
+  return safeAreaSize;
+}
+
+- (int) safeBottomAreaSize {
+  int safeAreaSize = 0;
+  if (@available(iOS 11, *)) {
+    UIWindow *mainWindow = [[[UIApplication sharedApplication] delegate] window];
+    safeAreaSize = mainWindow.safeAreaInsets.bottom;
+  } else {
+      return [self getStatusBarOffset];
   }
   return safeAreaSize;
 }
@@ -1064,8 +1079,11 @@ static CDVUIInAppBrowser* instance = nil;
     if ([_browserOptions.toolbarposition isEqualToString:kInAppBrowserToolbarBarPositionTop]) {
       if (@available(iOS 11, *)) {
         int safeArea = [self safeAreaSizeOrStatusBarOffset];
-        [self.webView setFrame:CGRectMake(self.webView.frame.origin.x, TOOLBAR_HEIGHT+safeArea, self.webView.frame.size.width, (self.webView.frame.size.height - safeArea))];
-        [self.toolbar setFrame:CGRectMake(self.toolbar.frame.origin.x, [self getStatusBarOffset], self.toolbar.frame.size.width, self.toolbar.frame.size.height)];
+        int bottomSafeArea = [self safeBottomAreaSize];
+
+        int bottomOffset = safeArea ? (TOOLBAR_HEIGHT - bottomSafeArea) : bottomSafeArea;
+        [self.webView setFrame:CGRectMake(self.webView.frame.origin.x, TOOLBAR_HEIGHT+safeArea, self.webView.frame.size.width, (self.webView.frame.size.height-(bottomOffset)))];
+        [self.toolbar setFrame:CGRectMake(self.toolbar.frame.origin.x, safeArea, self.toolbar.frame.size.width, self.toolbar.frame.size.height)];
       } else {
         [self.webView setFrame:CGRectMake(self.webView.frame.origin.x, TOOLBAR_HEIGHT, self.webView.frame.size.width, self.webView.frame.size.height)];
         [self.toolbar setFrame:CGRectMake(self.toolbar.frame.origin.x, [self getStatusBarOffset], self.toolbar.frame.size.width, self.toolbar.frame.size.height)];
